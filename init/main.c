@@ -672,7 +672,7 @@ noinline void __ref rest_init(void)
 	 * the init task will end up wanting to create kthreads, which, if
 	 * we schedule it before we create kthreadd, will OOPS.
 	 */
-	pid = kernel_thread(kernel_init, NULL, CLONE_FS);
+	pid = kernel_thread(kernel_init, NULL, CLONE_FS);//创建pid=1的init进程，后续会通过这个进程管理所有用户空间的进程，后续用户空间的进程都是通过fork产生的
 	/*
 	 * Pin init on the boot CPU. Task migration is not properly working
 	 * until sched_init_smp() has been run. It will set the allowed
@@ -684,7 +684,7 @@ noinline void __ref rest_init(void)
 	rcu_read_unlock();
 
 	numa_default_policy();
-	pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
+	pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);//创建pid=2的进程kthreadd，用于管理内核所有的线程，后续内核空间的线程都是通过kthreadd，调用kernel_thread创建
 	rcu_read_lock();
 	kthreadd_task = find_task_by_pid_ns(pid, &init_pid_ns);
 	rcu_read_unlock();
@@ -706,7 +706,7 @@ noinline void __ref rest_init(void)
 	 */
 	schedule_preempt_disabled();
 	/* Call into cpu_idle with preempt disabled */
-	cpu_startup_entry(CPUHP_ONLINE);
+	cpu_startup_entry(CPUHP_ONLINE);//0号进程或者idle进程的归宿在这里
 }
 
 /* Check for early params. */
@@ -833,7 +833,7 @@ void __init __weak arch_call_rest_init(void)
 	rest_init();
 }
 
-asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
+asmlinkage __visible void __init __no_sanitize_address start_kernel(void)//kernel启动中最重要的函数
 {
 	char *command_line;
 	char *after_dashes;
@@ -1048,7 +1048,7 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 	/* Do the rest non-__init'ed, we're now alive */
 	arch_call_rest_init();
 
-	prevent_tail_call_optimization();
+	prevent_tail_call_optimization();//这一行不会执行到，因为前面的函数会do_while
 }
 
 /* Call all constructor functions linked into the kernel. */
