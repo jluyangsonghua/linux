@@ -3775,7 +3775,7 @@ context_switch(struct rq *rq, struct task_struct *prev,
 	prepare_lock_switch(rq, next, rf);
 
 	/* Here we just switch the register state and the stack. */
-	switch_to(prev, next, prev);
+	switch_to(prev, next, prev);//switch_to执行完后，pc指针就会指向next的task了，所以后面barrier()不会再运行，只会在下次再次调用回来时才会运行
 	barrier();
 
 	return finish_task_switch(prev);
@@ -6514,7 +6514,7 @@ void show_state_filter(unsigned long state_filter)
  * NOTE: this function does not set the idle thread's NEED_RESCHED
  * flag, to make booting more robust.
  */
-void init_idle(struct task_struct *idle, int cpu)
+void init_idle(struct task_struct *idle, int cpu)//内核的0号进程运行
 {
 	struct rq *rq = cpu_rq(cpu);
 	unsigned long flags;
@@ -6573,7 +6573,7 @@ void init_idle(struct task_struct *idle, int cpu)
 	ftrace_graph_init_idle_task(idle, cpu);
 	vtime_init_idle(idle, cpu);
 #ifdef CONFIG_SMP
-	sprintf(idle->comm, "%s/%d", INIT_TASK_COMM, cpu);
+	sprintf(idle->comm, "%s/%d", INIT_TASK_COMM, cpu);//pid=0进程，名称是swapper进程，也叫init进程或者idle进程，平时都运行idle的调度器上。
 #endif
 }
 
