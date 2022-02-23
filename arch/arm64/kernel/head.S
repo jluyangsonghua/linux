@@ -72,7 +72,7 @@ _head:
 	 * its opcode forms the magic "MZ" signature required by UEFI.
 	 */
 	add	x13, x18, #0x16
-	b	primary_entry
+	b	primary_entry			//启动阶段的总入口
 #else
 	b	primary_entry			// branch to kernel start, magic
 	.long	0				// reserved

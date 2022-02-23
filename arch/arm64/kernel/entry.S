@@ -149,7 +149,7 @@ alternative_cb_end
 #endif
 	.endm
 
-	.macro	kernel_entry, el, regsize = 64
+	.macro	kernel_entry, el, regsize = 64//保存现场，保存进程上下文或者中断上下文，实际上就是保存寄存器数据
 	.if	\regsize == 32
 	mov	w0, w0				// zero upper 32 bits of x0
 	.endif
@@ -243,7 +243,7 @@ alternative_else_nop_endif
 	*/
 	.endm
 
-	.macro	kernel_exit, el
+	.macro	kernel_exit, el//恢复现场，是kernel_entry的逆过程,另外在函数的最后，会调用ERET，会使能中断的！
 	.if	\el != 0
 	disable_daif
 
@@ -329,10 +329,10 @@ alternative_insn eret, nop, ARM64_UNMAP_KERNEL_AT_EL0
 	br	x30
 4:
 	tramp_alias	x30, tramp_exit_compat
-	br	x30
+	br	x30//这里面也会执行eret指令
 #endif
 	.else
-	eret
+	eret//这个指令很重要，会恢复DAIF位，常见的就是恢复CPU到使能IRQ，FIQ等的状态（相当于使能中断）
 	.endif
 	sb
 	.endm
@@ -429,8 +429,8 @@ tsk	.req	x28		// current thread_info
 /*
  * Interrupt handling.
  */
-	.macro	irq_handler
-	ldr_l	x1, handle_arch_irq
+	.macro	irq_handler//中断处理函数
+	ldr_l	x1, handle_arch_irq//实际定义是在kernel/irq/handle.c,drivers/irqchips/
 	mov	x0, sp
 	irq_stack_entry
 	blr	x1
@@ -483,7 +483,7 @@ SYM_CODE_START(vectors)
 	kernel_ventry	1, fiq_invalid			// FIQ EL1t
 	kernel_ventry	1, error_invalid		// Error EL1t
 
-	kernel_ventry	1, sync				// Synchronous EL1h
+	kernel_ventry	1, sync				// Synchronous EL1h//同步类型的异常处理函数入口，比如系统调用,sync参数只是label，实际函数会是el0_sync或者el1_sync
 	kernel_ventry	1, irq				// IRQ EL1h
 	kernel_ventry	1, fiq_invalid			// FIQ EL1h
 	kernel_ventry	1, error			// Error EL1h
@@ -625,7 +625,7 @@ alternative_if ARM64_HAS_IRQ_PRIO_MASKING
 	orr	x24, x24, x0
 alternative_else_nop_endif
 	cbnz	x24, 1f				// preempt count != 0 || NMI return path
-	bl	arm64_preempt_schedule_irq	// irq en/disable is done inside
+	bl	arm64_preempt_schedule_irq	// irq en/disable is done inside //中断返回前判断是否需要重新调度
 1:
 #endif
 
@@ -686,15 +686,15 @@ SYM_CODE_END(el0_error_compat)
 #endif
 
 	.align	6
-SYM_CODE_START_LOCAL_NOALIGN(el0_irq)
+SYM_CODE_START_LOCAL_NOALIGN(el0_irq)//用户态下触发中断
 	kernel_entry 0
 el0_irq_naked:
 	gic_prio_irq_setup pmr=x20, tmp=x0
 	ct_user_exit_irqoff
-	enable_da_f
+	enable_da_f//使能Debug，Serror，FIQ这三种异常，但IRQ异常还是禁止的，所以关于中断嵌套，irq_handle中不会被其他IRQ中断，但可以被FIQ中断（但Linux中没有用到FIQ）
 
 #ifdef CONFIG_TRACE_IRQFLAGS
-	bl	trace_hardirqs_off
+	bl trace_hardirqs_off//表示硬件中断关闭,实际上是在执行690行之前DAIF已经被置位(cpu自动置位的，没有指令级控制)
 #endif
 
 #ifdef CONFIG_HARDEN_BRANCH_PREDICTOR
@@ -702,12 +702,12 @@ el0_irq_naked:
 	bl	do_el0_irq_bp_hardening
 1:
 #endif
-	irq_handler
+	irq_handler//中断处理函数入口，通常在该执行过程中，IRQ是关闭的，但do_softirq过程中，会使能IRQ（local_irq_enable）,softirq处理完毕后会关闭IRQ
 
 #ifdef CONFIG_TRACE_IRQFLAGS
-	bl	trace_hardirqs_on
+	bl trace_hardirqs_on//实际上是在710行ret_to_user->kernel_exit->eret之后DAIF才恢复
 #endif
-	b	ret_to_user
+	b	ret_to_user//这里面会调用kernel_exit与690行对应
 SYM_CODE_END(el0_irq)
 
 SYM_CODE_START_LOCAL(el1_error)
@@ -738,7 +738,7 @@ SYM_CODE_END(el0_error)
  * "slow" syscall return path.
  */
 SYM_CODE_START_LOCAL(ret_to_user)
-	disable_daif
+	disable_daif//Debug,Serror,IRQ,FIQ,表示关闭所有异常（包括中断）
 	gic_prio_kentry_setup tmp=x3
 	ldr	x1, [tsk, #TSK_TI_FLAGS]
 	and	x2, x1, #_TIF_WORK_MASK
@@ -755,7 +755,7 @@ finish_ret_to_user:
  */
 work_pending:
 	mov	x0, sp				// 'regs'
-	bl	do_notify_resume
+	bl	do_notify_resume//这里会判断TIF_NEED_RESCHED，然后调用schedule
 #ifdef CONFIG_TRACE_IRQFLAGS
 	bl	trace_hardirqs_on		// enabled while in userspace
 #endif

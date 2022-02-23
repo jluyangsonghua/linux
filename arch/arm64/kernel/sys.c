@@ -18,6 +18,7 @@
 #include <asm/cpufeature.h>
 #include <asm/syscall.h>
 
+//mmap的系统调用
 SYSCALL_DEFINE6(mmap, unsigned long, addr, unsigned long, len,
 		unsigned long, prot, unsigned long, flags,
 		unsigned long, fd, unsigned long, off)
@@ -55,7 +56,7 @@ asmlinkage long __arm64_sys_ni_syscall(const struct pt_regs *__unused)
 #undef __SYSCALL
 #define __SYSCALL(nr, sym)	[nr] = __arm64_##sym,
 
-const syscall_fn_t sys_call_table[__NR_syscalls] = {
+const syscall_fn_t sys_call_table[__NR_syscalls] = {//中断向量表的地址
 	[0 ... __NR_syscalls - 1] = __arm64_sys_ni_syscall,
 #include <asm/unistd.h>
 };
