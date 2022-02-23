@@ -104,7 +104,7 @@ enum {
  *
  * Returns 1 when the thread should exit, 0 otherwise.
  */
-static int smpboot_thread_fn(void *data)
+static int smpboot_thread_fn(void *data)//这个函数运行的环境是进程上下文，会一直while运行，migration/ksoftitqd等函数最后都是运行到这个函数里
 {
 	struct smpboot_thread_data *td = data;
 	struct smp_hotplug_thread *ht = td->ht;
@@ -162,7 +162,7 @@ static int smpboot_thread_fn(void *data)
 		} else {
 			__set_current_state(TASK_RUNNING);
 			preempt_enable();
-			ht->thread_fn(td->cpu);
+			ht->thread_fn(td->cpu);//执行的位置
 		}
 	}
 }
