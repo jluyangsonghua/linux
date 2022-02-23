@@ -7,7 +7,7 @@
 #define PREEMPT_NEED_RESCHED	BIT(32)
 #define PREEMPT_ENABLED	(PREEMPT_NEED_RESCHED)
 
-static inline int preempt_count(void)
+static inline int preempt_count(void)//非常有用的一个变量，通过不同bit来控制中断和抢占的状态,具体可以参考https://lwn.net/Articles/831678/
 {
 	return READ_ONCE(current_thread_info()->preempt.count);
 }

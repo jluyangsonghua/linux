@@ -698,7 +698,7 @@ static u64 __sched_period(unsigned long nr_running)
  *
  * s = p*P[w/rw]
  */
-static u64 sched_slice(struct cfs_rq *cfs_rq, struct sched_entity *se)
+static u64 sched_slice(struct cfs_rq *cfs_rq, struct sched_entity *se)//依据优先级算出实际应该运行的时间
 {
 	u64 slice = __sched_period(cfs_rq->nr_running + !se->on_rq);
 
@@ -4354,9 +4354,9 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 	struct sched_entity *se;
 	s64 delta;
 
-	ideal_runtime = sched_slice(cfs_rq, curr);
-	delta_exec = curr->sum_exec_runtime - curr->prev_sum_exec_runtime;
-	if (delta_exec > ideal_runtime) {
+	ideal_runtime = sched_slice(cfs_rq, curr);//依据优先级算出的应该运行的时间
+	delta_exec = curr->sum_exec_runtime - curr->prev_sum_exec_runtime;//算出实际运行时间
+	if (delta_exec > ideal_runtime) {//此周期内分配的时间片已经用完了
 		resched_curr(rq_of(cfs_rq));
 		/*
 		 * The current task ran long enough, ensure it doesn't get
@@ -4374,13 +4374,13 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 	if (delta_exec < sysctl_sched_min_granularity)
 		return;
 
-	se = __pick_first_entity(cfs_rq);
+	se = __pick_first_entity(cfs_rq);//first表示队列中最左侧的entity，即队列上vruntime最小的entity,vruntime越小，表示越迫切需要运行
 	delta = curr->vruntime - se->vruntime;
 
-	if (delta < 0)
+	if (delta < 0)//还是当前的entity的vruntime最小
 		return;
 
-	if (delta > ideal_runtime)
+	if (delta > ideal_runtime)//这里理解比较晦涩，1、并不是只要vruntime不是最小，就需要resched，而是需要一定的gap，2、这个gap以物理运行时间来定（即优先级越低越容易被抢占）
 		resched_curr(rq_of(cfs_rq));
 }
 
@@ -4536,7 +4536,7 @@ entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
 #endif
 
 	if (cfs_rq->nr_running > 1)
-		check_preempt_tick(cfs_rq, curr);
+		check_preempt_tick(cfs_rq, curr);//检查是否需要设置resched
 }
 
 

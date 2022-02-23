@@ -605,7 +605,7 @@ void wake_up_q(struct wake_q_head *head)
  * might also involve a cross-CPU call to trigger the scheduler on
  * the target CPU.
  */
-void resched_curr(struct rq *rq)
+void resched_curr(struct rq *rq)//目的是设置TIF_RESCHED标记位
 {
 	struct task_struct *curr = rq->curr;
 	int cpu;
@@ -617,14 +617,14 @@ void resched_curr(struct rq *rq)
 
 	cpu = cpu_of(rq);
 
-	if (cpu == smp_processor_id()) {
-		set_tsk_need_resched(curr);
-		set_preempt_need_resched();
+	if (cpu == smp_processor_id()) {//如果唤醒的CPU和执行的CPU
+		set_tsk_need_resched(curr);//设置thread_info的resched
+		set_preempt_need_resched();//设置preempt_count
 		return;
 	}
 
 	if (set_nr_and_not_polling(curr))
-		smp_send_reschedule(cpu);
+		smp_send_reschedule(cpu);//通过ipi通知目标cpu处理
 	else
 		trace_sched_wake_idle_without_ipi(cpu);
 }
@@ -2686,7 +2686,7 @@ static inline bool ttwu_queue_wakelist(struct task_struct *p, int cpu, int wake_
 }
 
 #endif /* CONFIG_SMP */
-
+//ttwu简称是take task wake up
 static void ttwu_queue(struct task_struct *p, int cpu, int wake_flags)
 {
 	struct rq *rq = cpu_rq(cpu);
@@ -2964,18 +2964,18 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
 	 * their previous state and preserve Program Order.
 	 */
 	smp_cond_load_acquire(&p->on_cpu, !VAL);
-
+	//为进程选择合适的cpu运行
 	cpu = select_task_rq(p, p->wake_cpu, SD_BALANCE_WAKE, wake_flags);
 	if (task_cpu(p) != cpu) {
 		wake_flags |= WF_MIGRATED;
 		psi_ttwu_dequeue(p);
-		set_task_cpu(p, cpu);
+		set_task_cpu(p, cpu);//如果选择的cpu不是原来的cpu，则需要进行task migration
 	}
 #else
 	cpu = task_cpu(p);
 #endif /* CONFIG_SMP */
 
-	ttwu_queue(p, cpu, wake_flags);
+	ttwu_queue(p, cpu, wake_flags);//将进程p放入队列，并标记为runnable
 unlock:
 	raw_spin_unlock_irqrestore(&p->pi_lock, flags);
 out:

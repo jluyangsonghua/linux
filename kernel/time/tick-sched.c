@@ -173,7 +173,7 @@ static void tick_sched_handle(struct tick_sched *ts, struct pt_regs *regs)
 		ts->next_tick = 0;
 	}
 #endif
-	update_process_times(user_mode(regs));
+	update_process_times(user_mode(regs));//周期调度的函数入口
 	profile_tick(CPU_PROFILING);
 }
 #endif
@@ -1363,7 +1363,7 @@ void tick_setup_sched_timer(void)
 	ts->sched_timer.function = tick_sched_timer;
 
 	/* Get the next period (per-CPU) */
-	hrtimer_set_expires(&ts->sched_timer, tick_init_jiffy_update());
+	hrtimer_set_expires(&ts->sched_timer, tick_init_jiffy_update());//设置周期调度的间隔时间是一个tick
 
 	/* Offset the tick to avert jiffies_lock contention. */
 	if (sched_skew_tick) {
