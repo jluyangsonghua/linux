@@ -202,7 +202,7 @@ do {						\
 		raw_local_irq_save(flags);		\
 		if (!raw_irqs_disabled_flags(flags))	\
 			trace_hardirqs_off();		\
-	} while (0)
+	} while (0)//请注意：如果irq是disable的，则只是保存flag,如果irq是enabled，则先保存flag，然后disabel irq。
 
 #define local_irq_restore(flags)			\
 	do {						\

@@ -279,7 +279,7 @@ restart:
 	/* Reset the pending bitmask before enabling irqs */
 	set_softirq_pending(0);
 
-	local_irq_enable();
+	local_irq_enable();//使能IRQ中断，实际是使能DAIF中的I bit
 
 	h = softirq_vec;
 
@@ -355,9 +355,9 @@ void irq_enter_rcu(void)
 		 * Prevent raise_softirq from needlessly waking up ksoftirqd
 		 * here, as softirq will be serviced on return from interrupt.
 		 */
-		local_bh_disable();
+		local_bh_disable();//关闭softirq
 		tick_irq_enter();
-		_local_bh_enable();
+		_local_bh_enable();//打开softirq
 	}
 	__irq_enter();
 }
@@ -365,7 +365,7 @@ void irq_enter_rcu(void)
 /**
  * irq_enter - Enter an interrupt context including RCU update
  */
-void irq_enter(void)
+void irq_enter(void)//表示进入了硬件中断上下文，实际是通过preempt_count中的hardware-interrupt-count bits来控制
 {
 	rcu_irq_enter();
 	irq_enter_rcu();
@@ -420,7 +420,7 @@ static inline void __irq_exit_rcu(void)
 	account_irq_exit_time(current);
 	preempt_count_sub(HARDIRQ_OFFSET);
 	if (!in_interrupt() && local_softirq_pending())
-		invoke_softirq();
+		invoke_softirq();//softirq最常被调用的位置，即是在IRQ上下文中调用。
 
 	tick_irq_exit();
 }
@@ -470,7 +470,7 @@ inline void raise_softirq_irqoff(unsigned int nr)
 		wakeup_softirqd();
 }
 
-void raise_softirq(unsigned int nr)
+void raise_softirq(unsigned int nr)//主动创造或者产生一个softirq中断
 {
 	unsigned long flags;
 

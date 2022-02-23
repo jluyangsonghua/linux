@@ -663,13 +663,13 @@ EXPORT_SYMBOL_GPL(generic_handle_irq);
  * Returns:	0 on success, or -EINVAL if conversion has failed
  */
 int __handle_domain_irq(struct irq_domain *domain, unsigned int hwirq,
-			bool lookup, struct pt_regs *regs)
+			bool lookup, struct pt_regs *regs)//IRQ类型的硬件中断处理函数入口，elx_irq->gic_handle_irq->这里
 {
 	struct pt_regs *old_regs = set_irq_regs(regs);
 	unsigned int irq = hwirq;
 	int ret = 0;
 
-	irq_enter();
+	irq_enter();//进入硬件中断上下文
 
 #ifdef CONFIG_IRQ_DOMAIN
 	if (lookup)
@@ -687,7 +687,7 @@ int __handle_domain_irq(struct irq_domain *domain, unsigned int hwirq,
 		generic_handle_irq(irq);
 	}
 
-	irq_exit();
+	irq_exit();//退出硬件中断上下文
 	set_irq_regs(old_regs);
 	return ret;
 }

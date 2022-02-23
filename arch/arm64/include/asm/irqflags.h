@@ -111,7 +111,7 @@ static inline unsigned long arch_local_irq_save(void)
 	 * state if interrupts are already disabled/masked.
 	 */
 	if (!arch_irqs_disabled_flags(flags))
-		arch_local_irq_disable();
+		arch_local_irq_disable();//如果irq不是disabled，则会将设置其disable
 
 	return flags;
 }
