@@ -1804,11 +1804,11 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
 
 		addr = vma->vm_start;
 		vm_flags = vma->vm_flags;
-	} else if (vm_flags & VM_SHARED) {
+	} else if (vm_flags & VM_SHARED) {//共享匿名映射
 		error = shmem_zero_setup(vma);
 		if (error)
 			goto free_vma;
-	} else {
+	} else {//私有匿名映射
 		vma_set_anonymous(vma);
 	}
 

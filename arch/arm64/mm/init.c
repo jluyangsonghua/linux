@@ -569,6 +569,9 @@ void __init mem_init(void)
                MLM(__phys_to_virt(memblock_start_of_DRAM()),
                    (unsigned long)high_memory));
 
+       pr_notice("    PAGE_OFFSET : 0x%llx\n", PAGE_OFFSET);
+       pr_notice("    Virtual addr bits : %d\n", VA_BITS);
+       pr_notice("    Kernel virtual start addr : 0x%llx\n", (-(UL(1) << (VA_BITS))));
 #undef MLK
 #undef MLM
 #undef MLK_ROUNDUP
