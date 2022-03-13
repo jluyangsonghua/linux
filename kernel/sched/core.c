@@ -3996,7 +3996,7 @@ void scheduler_tick(void)
 	update_rq_clock(rq);
 	thermal_pressure = arch_scale_thermal_pressure(cpu_of(rq));
 	update_thermal_load_avg(rq_clock_thermal(rq), rq, thermal_pressure);
-	curr->sched_class->task_tick(rq, curr, 0);
+	curr->sched_class->task_tick(rq, curr, 0);//每个调度类的task_tick
 	calc_global_load_tick(rq);
 	psi_task_tick(rq);
 
@@ -4357,7 +4357,7 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 restart:
 	put_prev_task_balance(rq, prev, rf);
 
-	for_each_class(class) {
+	for_each_class(class) {//stop->dl->rt->fair->idle
 		p = class->pick_next_task(rq);
 		if (p)
 			return p;

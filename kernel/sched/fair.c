@@ -11141,8 +11141,8 @@ const struct sched_class fair_sched_class
 	__attribute__((section("__fair_sched_class"))) = {
 	.enqueue_task		= enqueue_task_fair,
 	.dequeue_task		= dequeue_task_fair,
-	.yield_task		= yield_task_fair,
-	.yield_to_task		= yield_to_task_fair,
+	.yield_task		= yield_task_fair,//将task让出cpu
+	.yield_to_task		= yield_to_task_fair,//将current task让出cpu，并设置下一次的task
 
 	.check_preempt_curr	= check_preempt_wakeup,
 

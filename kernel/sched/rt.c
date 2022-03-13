@@ -1601,7 +1601,7 @@ static struct sched_rt_entity *pick_next_rt_entity(struct rq *rq,
 	struct list_head *queue;
 	int idx;
 
-	idx = sched_find_first_bit(array->bitmap);
+	idx = sched_find_first_bit(array->bitmap);//查找优先级最高的task
 	BUG_ON(idx >= MAX_RT_PRIO);
 
 	queue = array->queue + idx;
@@ -2397,10 +2397,10 @@ static void task_tick_rt(struct rq *rq, struct task_struct *p, int queued)
 	 * RR tasks need a special form of timeslice management.
 	 * FIFO tasks have no timeslices.
 	 */
-	if (p->policy != SCHED_RR)
+	if (p->policy != SCHED_RR)//如果是FIFO，则没有时间片time_slice的概念
 		return;
 
-	if (--p->rt.time_slice)
+	if (--p->rt.time_slice)//等待时间片到期，时间片到期后，才会将task p放置到queue的最后
 		return;
 
 	p->rt.time_slice = sched_rr_timeslice;
@@ -2410,8 +2410,8 @@ static void task_tick_rt(struct rq *rq, struct task_struct *p, int queued)
 	 * the only element on the queue
 	 */
 	for_each_sched_rt_entity(rt_se) {
-		if (rt_se->run_list.prev != rt_se->run_list.next) {
-			requeue_task_rt(rq, p, 0);
+		if (rt_se->run_list.prev != rt_se->run_list.next) {//如果queue中只有一个成员，就不需要move
+			requeue_task_rt(rq, p, 0);//将p移动到queue的tail
 			resched_curr(rq);
 			return;
 		}
