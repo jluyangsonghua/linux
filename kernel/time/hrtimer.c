@@ -1585,7 +1585,7 @@ static void __hrtimer_run_queues(struct hrtimer_cpu_base *cpu_base, ktime_t now,
 			if (basenow < hrtimer_get_softexpires_tv64(timer))
 				break;
 
-			__run_hrtimer(cpu_base, base, timer, &basenow, flags);
+			__run_hrtimer(cpu_base, base, timer, &basenow, flags);//执行到这里，表示有定时器到期了，执行对应的定时器回调函数
 			if (active_mask == HRTIMER_ACTIVE_SOFT)
 				hrtimer_sync_wait_running(cpu_base, flags);
 		}
@@ -1833,7 +1833,7 @@ static void __hrtimer_init_sleeper(struct hrtimer_sleeper *sl,
 	}
 
 	__hrtimer_init(&sl->timer, clock_id, mode);
-	sl->timer.function = hrtimer_wakeup;
+	sl->timer.function = hrtimer_wakeup;//timer.function是定时器的回调函数，在定时器时间到了后，会在中断处理函数中执行该函数
 	sl->task = current;
 }
 

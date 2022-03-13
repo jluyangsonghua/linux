@@ -317,7 +317,7 @@ restart:
 		    --max_restart)
 			goto restart;
 
-		wakeup_softirqd();
+		wakeup_softirqd();//如果restart重复了10次，还有pending的softirq，则唤醒ksoftirqd来处理
 	}
 
 	lockdep_softirq_end(in_hardirq);
