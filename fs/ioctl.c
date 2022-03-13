@@ -736,7 +736,7 @@ static int do_vfs_ioctl(struct file *filp, unsigned int fd,
 	return -ENOIOCTLCMD;
 }
 
-SYSCALL_DEFINE3(ioctl, unsigned int, fd, unsigned int, cmd, unsigned long, arg)
+SYSCALL_DEFINE3(ioctl, unsigned int, fd, unsigned int, cmd, unsigned long, arg)//ioctl的系统调用定义
 {
 	struct fd f = fdget(fd);
 	int error;
