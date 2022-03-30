@@ -897,7 +897,7 @@ static int do_poll(struct poll_list *list, struct poll_wqueues *wait,
 	if (end_time && !timed_out)
 		slack = select_estimate_accuracy(end_time);
 
-	for (;;) {
+	for (;;) {//主要是在这个循环里查询
 		struct poll_list *walk;
 		bool can_busy_loop = false;
 
@@ -1007,7 +1007,7 @@ static int do_sys_poll(struct pollfd __user *ufds, unsigned int nfds,
 		}
 	}
 
-	poll_initwait(&table);
+	poll_initwait(&table);//设置__pollwait
 	fdcount = do_poll(head, &table, end_time);
 	poll_freewait(&table);
 
@@ -1055,7 +1055,7 @@ static long do_restart_poll(struct restart_block *restart_block)
 }
 
 SYSCALL_DEFINE3(poll, struct pollfd __user *, ufds, unsigned int, nfds,
-		int, timeout_msecs)
+		int, timeout_msecs)//poll的系统调用之处
 {
 	struct timespec64 end_time, *to = NULL;
 	int ret;

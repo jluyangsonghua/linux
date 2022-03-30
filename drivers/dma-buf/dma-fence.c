@@ -344,7 +344,7 @@ int dma_fence_signal_locked(struct dma_fence *fence)
 	set_bit(DMA_FENCE_FLAG_TIMESTAMP_BIT, &fence->flags);
 	trace_dma_fence_signaled(fence);
 
-	list_for_each_entry_safe(cur, tmp, &cb_list, node) {
+	list_for_each_entry_safe(cur, tmp, &cb_list, node) {//cb_list可能为空
 		INIT_LIST_HEAD(&cur->node);
 		cur->func(fence, cur);
 	}
