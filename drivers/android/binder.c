@@ -4575,7 +4575,7 @@ done:
 		binder_debug(BINDER_DEBUG_THREADS,
 			     "%d:%d BR_SPAWN_LOOPER\n",
 			     proc->pid, thread->pid);
-		if (put_user(BR_SPAWN_LOOPER, (uint32_t __user *)buffer))
+		if (put_user(BR_SPAWN_LOOPER, (uint32_t __user *)buffer))//返回给用户buffer BR_SPAWN_LOOPER，用户空间收到后，会creat_thread
 			return -EFAULT;
 		binder_stat_br(proc, thread, BR_SPAWN_LOOPER);
 	} else
@@ -4861,7 +4861,7 @@ static int binder_ioctl_write_read(struct file *filp,
 		     (u64)bwr.write_size, (u64)bwr.write_buffer,
 		     (u64)bwr.read_size, (u64)bwr.read_buffer);
 
-	if (bwr.write_size > 0) {
+	if (bwr.write_size > 0) {//走write流程
 		ret = binder_thread_write(proc, thread,
 					  bwr.write_buffer,
 					  bwr.write_size,
@@ -4874,7 +4874,7 @@ static int binder_ioctl_write_read(struct file *filp,
 			goto out;
 		}
 	}
-	if (bwr.read_size > 0) {
+	if (bwr.read_size > 0) {//走read流程
 		ret = binder_thread_read(proc, thread, bwr.read_buffer,
 					 bwr.read_size,
 					 &bwr.read_consumed,
@@ -5027,18 +5027,18 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 	trace_binder_ioctl(cmd, arg);
 
-	ret = wait_event_interruptible(binder_user_error_wait, binder_stop_on_user_error < 2);
+	ret = wait_event_interruptible(binder_user_error_wait, binder_stop_on_user_error < 2);//如果binder_stop_on_user_error<2,则不会进入等待状态
 	if (ret)
 		goto err_unlocked;
 
-	thread = binder_get_thread(proc);
+	thread = binder_get_thread(proc);//获得应用层调用ioctl的thead信息,在open时会将current信息保存在proc结构体
 	if (thread == NULL) {
 		ret = -ENOMEM;
 		goto err;
 	}
 
 	switch (cmd) {
-	case BINDER_WRITE_READ:
+	case BINDER_WRITE_READ://读写的ioctl
 		ret = binder_ioctl_write_read(filp, cmd, arg, thread);
 		if (ret)
 			goto err;
