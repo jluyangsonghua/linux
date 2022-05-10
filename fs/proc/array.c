@@ -95,7 +95,7 @@
 #include <asm/processor.h>
 #include "internal.h"
 
-void proc_task_name(struct seq_file *m, struct task_struct *p, bool escape)
+void proc_task_name(struct seq_file *m, struct task_struct *p, bool escape)//ps COMMAND那一列的显示内容
 {
 	char *buf;
 	size_t size;
@@ -103,7 +103,7 @@ void proc_task_name(struct seq_file *m, struct task_struct *p, bool escape)
 	int ret;
 
 	if (p->flags & PF_WQ_WORKER)
-		wq_worker_comm(tcomm, sizeof(tcomm), p);
+		wq_worker_comm(tcomm, sizeof(tcomm), p);//workqueue显示的workqueue.name
 	else
 		__get_task_comm(tcomm, sizeof(tcomm), p);
 
@@ -591,9 +591,9 @@ static int do_task_stat(struct seq_file *m, struct pid_namespace *ns,
 
 	seq_put_decimal_ull(m, " ", 0);
 	seq_put_decimal_ull(m, " ", 0);
-	seq_put_decimal_ll(m, " ", task->exit_signal);
+	seq_put_decimal_ll(m, " ", task->exit_signal);//对于pid，exit_signal一般是17,对于tid，一般是-1
 	seq_put_decimal_ll(m, " ", task_cpu(task));
-	seq_put_decimal_ull(m, " ", task->rt_priority);
+	seq_put_decimal_ull(m, " ", task->rt_priority);//在/proc/xxx/stat下可以看到
 	seq_put_decimal_ull(m, " ", task->policy);
 	seq_put_decimal_ull(m, " ", delayacct_blkio_ticks(task));
 	seq_put_decimal_ull(m, " ", nsec_to_clock_t(gtime));
