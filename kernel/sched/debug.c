@@ -952,7 +952,7 @@ void proc_sched_show_task(struct task_struct *p, struct pid_namespace *ns,
 	__PS("effective uclamp.min", uclamp_eff_value(p, UCLAMP_MIN));
 	__PS("effective uclamp.max", uclamp_eff_value(p, UCLAMP_MAX));
 #endif
-	P(policy);
+	P(policy);//define 820行，cat /proc/xxx/sched最后几行的policy和prio，实际使用的是task_struct.prio和task_struct.policyCONFIG_MOST
 	P(prio);
 	if (task_has_dl_policy(p)) {
 		P(dl.runtime);
