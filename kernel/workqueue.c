@@ -181,7 +181,7 @@ struct worker_pool {
 	 * from other CPUs during try_to_wake_up(), put it in a separate
 	 * cacheline.
 	 */
-	atomic_t		nr_running ____cacheline_aligned_in_smp;
+	atomic_t		nr_running ____cacheline_aligned_in_smp;//表示正在运行中的worker数量
 
 	/*
 	 * Destruction of pool is RCU protected to allow dereferences
@@ -196,7 +196,7 @@ struct worker_pool {
  * point to the pwq; thus, pwqs need to be aligned at two's power of the
  * number of flag bits.
  */
-struct pool_workqueue {
+struct pool_workqueue {//pwq
 	struct worker_pool	*pool;		/* I: the associated pool */
 	struct workqueue_struct *wq;		/* I: the owning workqueue */
 	int			work_color;	/* L: current color */
@@ -279,7 +279,7 @@ struct workqueue_struct {
 	struct pool_workqueue __rcu *numa_pwq_tbl[]; /* PWR: unbound pwqs indexed by node */
 };
 
-static struct kmem_cache *pwq_cache;
+static struct kmem_cache *pwq_cache;//pool_workqueue的cache
 
 static cpumask_var_t *wq_numa_possible_cpumask;
 					/* possible CPUs of each node */
@@ -760,7 +760,7 @@ static bool work_is_canceling(struct work_struct *work)
  * they're being called with pool->lock held.
  */
 
-static bool __need_more_worker(struct worker_pool *pool)
+static bool __need_more_worker(struct worker_pool *pool)//如果有正在运行中的worker，就返回false
 {
 	return !atomic_read(&pool->nr_running);
 }
@@ -779,7 +779,7 @@ static bool need_more_worker(struct worker_pool *pool)
 }
 
 /* Can I start working?  Called from busy but !running workers. */
-static bool may_start_working(struct worker_pool *pool)
+static bool may_start_working(struct worker_pool *pool)//返回在idle中的worker数量
 {
 	return pool->nr_idle;
 }
@@ -1927,7 +1927,7 @@ static struct worker *create_worker(struct worker_pool *pool)
 		snprintf(id_buf, sizeof(id_buf), "u%d:%d", pool->id, id);
 
 	worker->task = kthread_create_on_node(worker_thread, worker, pool->node,
-					      "kworker/%s", id_buf);
+					      "kworker/%s", id_buf);//创建kworker线程的代码位置
 	if (IS_ERR(worker->task))
 		goto fail;
 
@@ -2354,7 +2354,7 @@ static void set_pf_worker(bool val)
  *
  * Return: 0
  */
-static int worker_thread(void *__worker)
+static int worker_thread(void *__worker)//kworker真正运行的函数
 {
 	struct worker *worker = __worker;
 	struct worker_pool *pool = worker->pool;
@@ -2384,7 +2384,7 @@ recheck:
 		goto sleep;
 
 	/* do we need to manage? */
-	if (unlikely(!may_start_working(pool)) && manage_workers(worker))
+	if (unlikely(!may_start_working(pool)) && manage_workers(worker))//manage_worker会依据需要，创建更多的worker,是CMWQ的精髓
 		goto recheck;
 
 	/*
@@ -2403,7 +2403,7 @@ recheck:
 	 */
 	worker_clr_flags(worker, WORKER_PREP | WORKER_REBOUND);
 
-	do {
+	do {//循环处理该worker上的每一个work
 		struct work_struct *work =
 			list_first_entry(&pool->worklist,
 					 struct work_struct, entry);
@@ -4292,13 +4292,13 @@ struct workqueue_struct *alloc_workqueue(const char *fmt,
 	wq_init_lockdep(wq);
 	INIT_LIST_HEAD(&wq->list);
 
-	if (alloc_and_link_pwqs(wq) < 0)
+	if (alloc_and_link_pwqs(wq) < 0)//针对unbound的pool，这里会调用alloc_and_link_pwqs->xxx->get_unbound_pool->hash_add
 		goto err_unreg_lockdep;
 
 	if (wq_online && init_rescuer(wq) < 0)
 		goto err_destroy;
 
-	if ((wq->flags & WQ_SYSFS) && workqueue_sysfs_register(wq))
+	if ((wq->flags & WQ_SYSFS) && workqueue_sysfs_register(wq))//针对WQ_SYSFS的，创建sys节点以供调试
 		goto err_destroy;
 
 	/*
@@ -5913,7 +5913,7 @@ static void __init wq_numa_init(void)
  */
 void __init workqueue_init_early(void)
 {
-	int std_nice[NR_STD_WORKER_POOLS] = { 0, HIGHPRI_NICE_LEVEL };
+	int std_nice[NR_STD_WORKER_POOLS] = { 0, HIGHPRI_NICE_LEVEL };//2种优先级，0,-20,对应100,120
 	int hk_flags = HK_FLAG_DOMAIN | HK_FLAG_WQ;
 	int i, cpu;
 
@@ -5961,11 +5961,11 @@ void __init workqueue_init_early(void)
 		attrs->no_numa = true;
 		ordered_wq_attrs[i] = attrs;
 	}
-
-	system_wq = alloc_workqueue("events", 0, 0);
+	//创建全局型的workqueue,其他driver等就可以使用这些workqueue，比如fs/sync.c中通过emergency_remount->schedule_work这api就是使用system_wq
+	system_wq = alloc_workqueue("events", 0, 0);//创建events等bound型workqueue，实际创建线程是在creat_worker中
 	system_highpri_wq = alloc_workqueue("events_highpri", WQ_HIGHPRI, 0);
 	system_long_wq = alloc_workqueue("events_long", 0, 0);
-	system_unbound_wq = alloc_workqueue("events_unbound", WQ_UNBOUND,
+	system_unbound_wq = alloc_workqueue("events_unbound", WQ_UNBOUND,//创建unbound型workqueue
 					    WQ_UNBOUND_MAX_ACTIVE);
 	system_freezable_wq = alloc_workqueue("events_freezable",
 					      WQ_FREEZABLE, 0);
@@ -6025,14 +6025,14 @@ void __init workqueue_init(void)
 
 	/* create the initial workers */
 	for_each_online_cpu(cpu) {
-		for_each_cpu_worker_pool(pool, cpu) {
+		for_each_cpu_worker_pool(pool, cpu) {//2个pool（不同优先级，nice=100,nice=120）
 			pool->flags &= ~POOL_DISASSOCIATED;
-			BUG_ON(!create_worker(pool));
+			BUG_ON(!create_worker(pool));//为BOUND型pool创建worker线程
 		}
 	}
 
 	hash_for_each(unbound_pool_hash, bkt, pool, hash_node)
-		BUG_ON(!create_worker(pool));
+		BUG_ON(!create_worker(pool));//为unbound型pool创建worker线程,hash链表是在alloc_unbound_pwd中hash_add的
 
 	wq_online = true;
 	wq_watchdog_init();

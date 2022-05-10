@@ -220,7 +220,7 @@ Do at least one of the following:
 		to execute elsewhere.
 
 Name:
-  kworker/%u:%d%s (cpu, id, priority)
+  kworker/%u:%d%s (cpu, id, priority)//内核线程中kworker的显示内容
 
 Purpose:
   Execute workqueue requests
