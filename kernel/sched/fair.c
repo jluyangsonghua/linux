@@ -700,9 +700,9 @@ static u64 __sched_period(unsigned long nr_running)
  */
 static u64 sched_slice(struct cfs_rq *cfs_rq, struct sched_entity *se)//依据优先级算出实际应该运行的时间
 {
-	u64 slice = __sched_period(cfs_rq->nr_running + !se->on_rq);
+	u64 slice = __sched_period(cfs_rq->nr_running + !se->on_rq);//大概率slice=6ms
 
-	for_each_sched_entity(se) {
+	for_each_sched_entity(se) {//循环是为了组调度而引入，针对非组调度，for只会有一次
 		struct load_weight *load;
 		struct load_weight lw;
 
@@ -715,8 +715,8 @@ static u64 sched_slice(struct cfs_rq *cfs_rq, struct sched_entity *se)//依据�
 			update_load_add(&lw, se->load.weight);
 			load = &lw;
 		}
-		slice = __calc_delta(slice, se->load.weight, load);
-	}
+		slice = __calc_delta(slice, se->load.weight, load);//slice = slice*(se.load.weight)/load.weight,比如是4个优先级相等的tasks，则某个task的slice=6*0.25=1.5ms
+	}//优先级越高，weight值越大，一个调度周期内（6ms）应该占用更多的实际运行时间
 	return slice;
 }
 

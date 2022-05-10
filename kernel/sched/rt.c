@@ -2431,7 +2431,7 @@ static unsigned int get_rr_interval_rt(struct rq *rq, struct task_struct *task)
 
 const struct sched_class rt_sched_class
 	__attribute__((section("__rt_sched_class"))) = {
-	.enqueue_task		= enqueue_task_rt,
+	.enqueue_task		= enqueue_task_rt,//按照优先级将task放到rq的队列中,优先级高的会被先调度到
 	.dequeue_task		= dequeue_task_rt,
 	.yield_task		= yield_task_rt,
 
@@ -2451,7 +2451,7 @@ const struct sched_class rt_sched_class
 	.switched_from		= switched_from_rt,
 #endif
 
-	.task_tick		= task_tick_rt,
+	.task_tick		= task_tick_rt,//rr调度类时间片轮转是在这里实现的
 
 	.get_rr_interval	= get_rr_interval_rt,
 
