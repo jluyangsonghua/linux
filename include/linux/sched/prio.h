@@ -30,7 +30,7 @@
  * to static priority [ MAX_RT_PRIO..MAX_PRIO-1 ],
  * and back.
  */
-#define NICE_TO_PRIO(nice)	((nice) + DEFAULT_PRIO)
+#define NICE_TO_PRIO(nice)	((nice) + DEFAULT_PRIO)//top,ps看到的NI就是nice值
 #define PRIO_TO_NICE(prio)	((prio) - DEFAULT_PRIO)
 
 /*
