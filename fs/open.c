@@ -1163,15 +1163,15 @@ static long do_sys_openat2(int dfd, const char __user *filename,
 	if (IS_ERR(tmp))
 		return PTR_ERR(tmp);
 
-	fd = get_unused_fd_flags(how->flags);
+	fd = get_unused_fd_flags(how->flags);//因为fd是current下alloc出来的current.files.fdt.fd[fd]，所以不同task open相同文件，得到的fd可能不相同。实际上会alloc 不同的struct file
 	if (fd >= 0) {
-		struct file *f = do_filp_open(dfd, tmp, &op);
+		struct file *f = do_filp_open(dfd, tmp, &op);//不同task open相同文件时，alloc不同的struct file file，但是file.inode（strcut inode）是相同的，因为inode是文件系统生成时创建的
 		if (IS_ERR(f)) {
 			put_unused_fd(fd);
 			fd = PTR_ERR(f);
 		} else {
 			fsnotify_open(f);
-			fd_install(fd, f);
+			fd_install(fd, f);//建立fd与file的关系
 		}
 	}
 	putname(tmp);

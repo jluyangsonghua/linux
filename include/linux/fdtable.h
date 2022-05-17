@@ -55,7 +55,7 @@ struct files_struct {
 	wait_queue_head_t resize_wait;
 
 	struct fdtable __rcu *fdt;
-	struct fdtable fdtab;
+	struct fdtable fdtab;//fdtab.fd[fd]=(struct file *)file,通常意义上的int fd与struct file的关系
   /*
    * written part on a separate cache line in SMP
    */
