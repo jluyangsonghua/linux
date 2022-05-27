@@ -128,7 +128,7 @@ void *alloc_insn_page(void)
 /* arm kprobe: install breakpoint in text */
 void __kprobes arch_arm_kprobe(struct kprobe *p)
 {
-	patch_text(p->addr, BRK64_OPCODE_KPROBES);
+	patch_text(p->addr, BRK64_OPCODE_KPROBES);//将addr替换为BRK指令，出发BRK指令后，cpu会进入中段处理函数el1_sync
 }
 
 /* disarm kprobe: remove breakpoint from text */
