@@ -1,0 +1,18 @@
+
+一、
+push命令: git push
+
+ysh@yshVtb:~/code/kernel_github/linux$ git remote  -v
+origin	git@github.com:jluyangsonghua/linux.git (fetch)
+origin	git@github.com:jluyangsonghua/linux.git (push)
+
+二、
+!bin/sh
+gnu_dir=/home/ysh/code/toolchain/gcc-linaro-7.5.0-2019.12-rc1-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+make ARCH=arm64 CROSS_COMPILE=/home/ysh/code/toolchain/gcc-linaro-7.5.0-2019.12-rc1-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu- menuconfig
+make ARCH=arm64 CROSS_COMPILE=/home/ysh/code/toolchain/gcc-linaro-7.5.0-2019.12-rc1-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu- Image -j4
+
+三、用户空间bin文件如何在qemu中使用
+将bin文件放置在rootfs中，比如usr/bin/目录下，重新编译kernel即可
+
+
