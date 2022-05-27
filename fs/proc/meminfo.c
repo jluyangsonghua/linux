@@ -57,8 +57,8 @@ static int meminfo_proc_show(struct seq_file *m, void *v)
 
 	show_val_kb(m, "MemTotal:       ", i.totalram);
 	show_val_kb(m, "MemFree:        ", i.freeram);
-	show_val_kb(m, "MemAvailable:   ", available);
-	show_val_kb(m, "Buffers:        ", i.bufferram);
+	show_val_kb(m, "MemAvailable:   ", available);//free+cache/2,即大概的可用内存数,预测可以回收一半的cache
+	show_val_kb(m, "Buffers:        ", i.bufferram);//blockdev_superblock->s_inodes下的nrpages，即直接访问块设备时的缓冲内存
 	show_val_kb(m, "Cached:         ", cached);
 	show_val_kb(m, "SwapCached:     ", total_swapcache_pages());
 	show_val_kb(m, "Active:         ", pages[LRU_ACTIVE_ANON] +
