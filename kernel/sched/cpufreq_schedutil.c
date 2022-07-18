@@ -173,7 +173,7 @@ static unsigned int get_next_freq(struct sugov_policy *sg_policy,
 	unsigned int freq = arch_scale_freq_invariant() ?
 				policy->cpuinfo.max_freq : policy->cur;
 
-	freq = map_util_freq(util, freq, max);
+	freq = map_util_freq(util, freq, max);//1.25×freq*util/max
 
 	if (freq == sg_policy->cached_raw_freq && !sg_policy->need_freq_update)
 		return sg_policy->next_freq;
@@ -521,7 +521,7 @@ static unsigned int sugov_next_freq_shared(struct sugov_cpu *sg_cpu, u64 time)
 }
 
 static void
-sugov_update_shared(struct update_util_data *hook, u64 time, unsigned int flags)
+sugov_update_shared(struct update_util_data *hook, u64 time, unsigned int flags)//调频时执行的函数
 {
 	struct sugov_cpu *sg_cpu = container_of(hook, struct sugov_cpu, update_util);
 	struct sugov_policy *sg_policy = sg_cpu->sg_policy;
@@ -529,18 +529,18 @@ sugov_update_shared(struct update_util_data *hook, u64 time, unsigned int flags)
 
 	raw_spin_lock(&sg_policy->update_lock);
 
-	sugov_iowait_boost(sg_cpu, time, flags);
+	sugov_iowait_boost(sg_cpu, time, flags);//iowait boost策略
 	sg_cpu->last_update = time;
 
 	ignore_dl_rate_limit(sg_cpu, sg_policy);
 
-	if (sugov_should_update_freq(sg_policy, time)) {
-		next_f = sugov_next_freq_shared(sg_cpu, time);
+	if (sugov_should_update_freq(sg_policy, time)) {//避免调频过于频繁
+		next_f = sugov_next_freq_shared(sg_cpu, time);//计算下次要设置的freq
 
 		if (sg_policy->policy->fast_switch_enabled)
-			sugov_fast_switch(sg_policy, time, next_f);
+			sugov_fast_switch(sg_policy, time, next_f);//设置新频率
 		else
-			sugov_deferred_update(sg_policy, time, next_f);
+			sugov_deferred_update(sg_policy, time, next_f);//设置新频率
 	}
 
 	raw_spin_unlock(&sg_policy->update_lock);
@@ -854,7 +854,7 @@ static int sugov_start(struct cpufreq_policy *policy)
 	for_each_cpu(cpu, policy->cpus) {
 		struct sugov_cpu *sg_cpu = &per_cpu(sugov_cpu, cpu);
 
-		cpufreq_add_update_util_hook(cpu, &sg_cpu->update_util,
+		cpufreq_add_update_util_hook(cpu, &sg_cpu->update_util,//设置cpufreq_update_util的钩子函数，最后执行那个data->func时调用sugov_update_shared
 					     policy_is_shared(policy) ?
 							sugov_update_shared :
 							sugov_update_single);
@@ -891,7 +891,7 @@ static void sugov_limits(struct cpufreq_policy *policy)
 	sg_policy->limits_changed = true;
 }
 
-struct cpufreq_governor schedutil_gov = {
+struct cpufreq_governor schedutil_gov = {//schedutil调度策略的数据结构
 	.name			= "schedutil",
 	.owner			= THIS_MODULE,
 	.dynamic_switching	= true,

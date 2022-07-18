@@ -775,7 +775,7 @@ struct perf_domain {
  * object.
  *
  */
-struct root_domain {
+struct root_domain {//对于手机4+3+1的架构，只有一个rood_domain
 	atomic_t		refcount;
 	atomic_t		rto_count;
 	struct rcu_head		rcu;
@@ -827,7 +827,7 @@ struct root_domain {
 	 * NULL-terminated list of performance domains intersecting with the
 	 * CPUs of the rd. Protected by RCU.
 	 */
-	struct perf_domain __rcu *pd;
+	struct perf_domain __rcu *pd;//对于手机4+3+1架构，一个root domian ,3个perf_domain，相当与每个cluster是一个perf_domain
 };
 
 extern void init_defrootdomain(void);
@@ -2376,7 +2376,7 @@ DECLARE_PER_CPU(struct update_util_data __rcu *, cpufreq_update_util_data);
  * but that really is a band-aid.  Going forward it should be replaced with
  * solutions targeted more specifically at RT tasks.
  */
-static inline void cpufreq_update_util(struct rq *rq, unsigned int flags)
+static inline void cpufreq_update_util(struct rq *rq, unsigned int flags)//按照cpu利用率来更新cpu频率
 {
 	struct update_util_data *data;
 
