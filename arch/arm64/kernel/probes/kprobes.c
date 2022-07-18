@@ -88,7 +88,7 @@ int __kprobes arch_prepare_kprobe(struct kprobe *p)
 		return -EINVAL;
 
 	/* copy instruction */
-	p->opcode = le32_to_cpu(*p->addr);
+	p->opcode = le32_to_cpu(*p->addr);//保存原地址的指令在struct kprobe.opcode中，以用于后续恢复到该地址执行
 
 	if (search_exception_tables(probe_addr))
 		return -EINVAL;
@@ -223,7 +223,7 @@ static void __kprobes setup_singlestep(struct kprobe *p,
 		/* IRQs and single stepping do not mix well. */
 		kprobes_save_local_irqflag(kcb, regs);
 		kernel_enable_single_step(regs);
-		instruction_pointer_set(regs, slot);
+		instruction_pointer_set(regs, slot);//kprobe退出流程中：将原地址的原指令赋值给PC
 	} else {
 		/* insn simulation */
 		arch_simulate_insn(p, regs);
@@ -371,7 +371,7 @@ static void __kprobes kprobe_handler(struct pt_regs *regs)
 			 * pre_handler return back.
 			 */
 			if (!p->pre_handler || !p->pre_handler(p, regs)) {
-				setup_singlestep(p, regs, kcb, 0);
+				setup_singlestep(p, regs, kcb, 0);//设置单步模式，内部会将原地址设置回去，并将原地址赋值给pc指针
 			} else
 				reset_current_kprobe();
 		}
